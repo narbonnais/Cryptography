@@ -36,6 +36,12 @@ This repository contains implementations of various cryptographic algorithms and
 - Non-interactive signature aggregation
 - [View Implementation](musig.py)
 
+### Shamir Secret Sharing
+- Split private keys into n shares where any t shares can reconstruct
+- Based on polynomial interpolation in finite fields
+- Secure threshold-based key backup solution
+- [View Implementation](shamir_key_backup.py)
+
 ## 💫 Multi-Party Computation (MPC) Applications
 
 ### IoT Temperature Averaging
