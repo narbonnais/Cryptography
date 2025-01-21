@@ -30,6 +30,12 @@ This repository contains implementations of various cryptographic algorithms and
 - Supports addition of encrypted values
 - [View Implementation](paillier.py)
 
+### Public Verifiable Secret Sharing (PVSS)
+- Enhanced secret sharing with public verification
+- Allows anyone to verify share validity
+- Based on discrete logarithm commitments
+- [View Implementation](public_verifiable_secret_sharing.py)
+
 ### MuSig (Multi-Signature Scheme)
 - Advanced multi-signature scheme using Schnorr signatures
 - More efficient than individual signatures
