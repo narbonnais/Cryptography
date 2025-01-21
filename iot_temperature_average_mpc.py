@@ -134,6 +134,15 @@ def main():
     avg = network.compute_average_temperature()
     print(f"Final average temperature: {avg}°C")
 
+    # device 2 and 3 update their temperatures to 22 degrees both
+    for i in range(10):
+        device2.update_temperature(22, network.get_public_key())
+        print(f"Device 2: {str(device2.encrypted_temperature)[:10]}")
+
+    # compute new average
+    avg = network.compute_average_temperature()
+    print(f"New average temperature: {avg}°C")
+
 
 if __name__ == "__main__":
     main()

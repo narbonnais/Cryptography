@@ -20,6 +20,7 @@ class ShamirSecretSharing:
     def __init__(self, prime_bits: int = 256):
         """Initialize with a prime field size"""
         self.prime = self._generate_safe_prime(prime_bits)
+        print(f"Prime: {self.prime}")
 
     def split_secret(self, secret: int, threshold: int, total_shares: int) -> List[Share]:
         """
