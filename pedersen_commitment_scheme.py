@@ -1,6 +1,6 @@
 """
 Pedersen Commitment Scheme - Educational Example
-================================================
+===============================================
 
 The Pedersen Commitment Scheme is a cryptographic mechanism that allows a party
 to commit to a value while keeping it hidden. Later, the committer can reveal
@@ -26,9 +26,9 @@ Main Components:
 
 Why It Works:
 -------------
-- Hiding: Because "t" is random, observers cannot learn "s" from c.
-- Binding: Because discrete logarithms are hard to compute, it is computationally
-           infeasible to find a different (s', t') that yields the same c.
+- **Hiding**: Because "t" is random, observers cannot learn "s" from c.
+- **Binding**: Because discrete logarithms are hard to compute, it is computationally
+             infeasible to find a different (s', t') that yields the same c.
 
 Security Caution:
 -----------------
@@ -36,7 +36,7 @@ Security Caution:
   the binding property. The `attack()` function shows how this can be done
   with deliberately weak parameters.
 
-Script output:
+Script Output:
 --------------
 === Happy Path Demonstration ===
 Context: p=23, q=11, g=2, h=4
@@ -49,8 +49,8 @@ Context (weak): p=23, q=11, g=2, h=4
 Original secret (s) = 3, original nonce (t) = 5
 Original commitment: 4
 Fake secret (s') = 5 that the attacker wants to reveal
-The attacker managed to find log_g(h) = 2 such as h = g^r
-Allowing him to compute t' = 4 such as g^s' * h^t' = g^s * h^t
+The attacker managed to find log_g(h) = 2 such that h = g^2 mod p
+Allowing them to compute t' = 4 such that g^s' * h^t' = g^s * h^t mod p
 Check that commit(g^s', h^t') == original commitment:
 Fake opening => commit = 4
 Original commitment => 4
@@ -60,6 +60,7 @@ Result: The same commitment value, proving the binding property is broken with k
 
 import dataclasses
 import random
+
 
 @dataclasses.dataclass
 class Context:
@@ -105,32 +106,32 @@ class Proof:
 def commit(context: Context, committer_context: CommitterContext) -> Commitment:
     """
     Generate a Pedersen commitment.
-    
+
     c = (g^s mod p) * (h^t mod p) mod p
     """
     # Calculate g^s mod p
-    g_to_s = pow(context.g, committer_context.s, context.q)
+    g_to_s = pow(context.g, committer_context.s, context.p)
     # Calculate h^t mod p
-    h_to_t = pow(context.h, committer_context.t, context.q)
+    h_to_t = pow(context.h, committer_context.t, context.p)
     # Multiply them together (mod p) to get the commitment
-    commitment_value = (g_to_s * h_to_t) % context.q
-    
+    commitment_value = (g_to_s * h_to_t) % context.p
+
     return Commitment(c=commitment_value)
 
 
 def verify(context: Context, commitment: Commitment, proof: Proof) -> bool:
     """
     Verify that the provided (s, t) indeed opens the given commitment.
-    
+
     Checks if:
         commitment.c == g^s * h^t (mod p)
     """
     left_side = commitment.c
     right_side = (
-        pow(context.g, proof.s, context.q) * 
-        pow(context.h, proof.t, context.q)
-    ) % context.q
-    
+        pow(context.g, proof.s, context.p) *
+        pow(context.h, proof.t, context.p)
+    ) % context.p
+
     return left_side == right_side
 
 
@@ -142,27 +143,27 @@ def happy_path():
       3) Verify the commitment using the proof (s, t).
     """
     print("=== Happy Path Demonstration ===")
-    
+
     # Example (small) parameters for demonstration only
     context = Context(p=23, q=11, g=2, h=4)
-    
+
     # Committer chooses a secret s (for example, s=3)
     s = 3
     # Committer chooses a random t from Z_q (1 <= t <= q-1)
     t = random.randint(1, context.q - 1)
-    
-    print(f"Context: p={context.q}, q={context.q}, g={context.g}, h={context.h}")
+
+    print(f"Context: p={context.p}, q={context.q}, g={context.g}, h={context.h}")
     print(f"Secret (s) = {s}, Random nonce (t) = {t}")
-    
+
     # Create a commit
     committer_context = CommitterContext(s=s, t=t)
     commitment = commit(context, committer_context)
-    
+
     print(f"Generated Commitment: c = {commitment.c}")
-    
+
     # Reveal s and t
     proof = Proof(s=s, t=t)
-    
+
     # Verification
     verification_result = verify(context, commitment, proof)
     print(f"Verification of (s={s}, t={t}) => {verification_result}")
@@ -171,7 +172,7 @@ def happy_path():
 def attack():
     """
     Demonstrates an attack on Pedersen Commitment when log_g(h) is known.
-    
+
     Steps:
     1) Use small parameters where h = g^2, so we know log_g(h) = 2.
     2) Commit to some (s, t).
@@ -179,29 +180,29 @@ def attack():
        This shows the binding property is broken.
     """
     print("\n=== Attack Demonstration ===")
-    
+
     # Weak parameters: p=23, q=11, g=2, h=4 => h = g^2 mod p
     # So log_g(h) = 2
     context = Context(p=23, q=11, g=2, h=4)
-    print(f"Context (weak): p={context.q}, q={context.q}, g={context.g}, h={context.h}")
-    
+    print(f"Context (weak): p={context.p}, q={context.q}, g={context.g}, h={context.h}")
+
     # Original secret and randomness
     s_original = 3
     t_original = 5
     committer_context_original = CommitterContext(s=s_original, t=t_original)
-    
+
     # Commit to (s_original, t_original)
     original_commitment = commit(context, committer_context_original)
-    
+
     # Show original commitment
     print(f"Original secret (s) = {s_original}, original nonce (t) = {t_original}")
     print(f"Original commitment: {original_commitment.c}")
-    
+
     # Verify the original pair
     proof_original = Proof(s=s_original, t=t_original)
     assert verify(context, original_commitment, proof_original), \
         "Original commitment verification should succeed."
-    
+
     # Attacker finds a different (s', t') that gives the same commitment
     # We rely on the relation h = g^2.
     # The key equation for the same commitment:
@@ -216,26 +217,26 @@ def attack():
     #
     # Rearrange for t':
     #    t' = (s + 2t - s') * (1/2) (mod q)
-    
+
     s_fake = 5  # an attacker-chosen "fake" secret
     s_plus_2t = (s_original + 2 * t_original) % context.q
-    
+
     # We need the modular inverse of 2 in Z_q
     inv_2_mod_q = pow(2, -1, context.q)  # This works in Python 3.8+
-    
+
     # Now compute t' that satisfies the equation
     t_fake = (s_plus_2t - s_fake) * inv_2_mod_q % context.q
-    
+
     # Create a "fake" proof with these values
     fake_proof = Proof(s=s_fake, t=t_fake)
-    
+
     # Verify that this fake proof opens the original commitment
     assert verify(context, original_commitment, fake_proof), \
         "Attack demonstration failed; the two proofs should match the same commitment."
-    
+
     print(f"Fake secret (s') = {s_fake} that the attacker wants to reveal")
-    print(f"The attacker managed to find log_g(h) = {2} such as h = g^r [q]")
-    print(f"Allowing him to compute t' = {t_fake} such as g^s' * h^t' = g^s * h^t [q]")
+    print(f"The attacker managed to find log_g(h) = 2 such that h = g^2 mod p")
+    print(f"Allowing them to compute t' = {t_fake} such that g^s' * h^t' = g^s * h^t mod p")
     print(f"Check that commit(g^s', h^t') == original commitment:")
     print(f"Fake opening => commit = {commit(context, CommitterContext(s=s_fake, t=t_fake)).c}")
     print(f"Original commitment => {original_commitment.c}")
